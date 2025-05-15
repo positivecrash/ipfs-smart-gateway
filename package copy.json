@@ -13,8 +13,10 @@
         }
     },
     "scripts": {
-        "build": "npx rollup -c",
-        "local:dev": "npx serve ."
+        "build": "npx rollup -c && cp dist/ipfs-smart-gateway.umd.js examples/",
+        "local:dev": "npx serve .",
+        "local:predeploy": "npm run build && cp dist/ipfs-smart-gateway.umd.js demo/",
+        "local:deploy": "npx gh-pages -d demo"
     },
     "keywords": [
         "ipfs",

@@ -1,4 +1,4 @@
-import { terser } from 'rollup-plugin-terser'
+import terser from '@rollup/plugin-terser'
 
 export default {
   input: 'index.js',
@@ -6,7 +6,7 @@ export default {
     {
       file: 'dist/ipfs-smart-gateway.umd.js',
       format: 'umd',
-      name: 'IPFSGatewaySelector',
+      name: 'ipfsSmartGateway',
       exports: 'named',
       sourcemap: true
     },
