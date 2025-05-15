@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>IPFS Smart Gateway (UMD Test)</title>
+  <style>
+    body { font-family: sans-serif; }
+    label { display: inline-block; width: 150px; }
+    input { width: 300px; }
+    pre { background: #f7f7f7; padding: 1em; white-space: pre-wrap; word-break: break-word; }
+  </style>
+</head>
+<body>
+  <h1>IPFS Smart Gateway (UMD Test)</h1>
+
+  <div>
+    <label for="customGateway">Custom gateway:</label>
+    <input type="text" id="customGateway" placeholder="example.com/ipfs/" />
+    <button onclick="addCustomGateway()">Add</button>
+  </div>
+
+  <div>
+    <label for="cidInput">CID:</label>
+    <input type="text" id="cidInput" placeholder="Leave empty to use default" />
+  </div>
+
+  <button onclick="runTest()">Check gateways</button>
+  <pre id="log">Init...</pre>
+
+  <script src="ipfs-smart-gateway.umd.js"></script>
+  <script>
+    const log = msg => {
+      const el = document.getElementById('log')
+      el.textContent += `\n${msg}`
+    }
+
+    const DEFAULT_CID = 'bafybeibwzifw52ttrkqlikfzext5akxu7lz4xiwjgwzmqcpdzmp3n5vnbe'
+
+    ipfsSmartGateway.configure({
+      stopOnFirstSuccess: false,
+      persistStorage: true
+    })
+
+    ipfsSmartGateway.setDefaultGateways([
+      'https://aira.mypinata.cloud/ipfs/',
+      'https://gateway.pinata.cloud/ipfs/',
+      'https://ipfs.url.today/ipfs/',
+      'https://ipfs.io/ipfs/',
+      'https://gw.crust-gateway.xyz/ipfs/'
+    ])
+
+    function addCustomGateway() {
+      const input = document.getElementById('customGateway')
+      const url = input.value.trim()
+      if (!url) return
+      try {
+        ipfsSmartGateway.setUserGateways([url])
+        log(`➕ Added: ${url}`)
+        input.value = ''
+      } catch (err) {
+        log(`❌ ${err.message}`)
+      }
+    }
+
+    async function runTest() {
+      const raw = document.getElementById('cidInput').value.trim()
+      const cid = raw || DEFAULT_CID
+      log(`\n▶️ Starting check for CID: ${cid}`)
+
+      await ipfsSmartGateway.checkGateways({
+        cid,
+        onStart: () => log('🔍 Checking...'),
+        onSuccess: g => log(`✅ ${g.url} — ${g.time.toFixed(0)}ms`),
+        onFail: g => log(`❌ ${g.url} — unavailable`)
+      })
+
+      const best = ipfsSmartGateway.getPickedGateway()
+      log(`\n🎯 Best gateway: ${best}`)
+
+      const content = await ipfsSmartGateway.fetchFromPicked(cid)
+      if (!content) return log('\n📄 No content...')
+
+      log(`\n📄 Response: ${content.slice(0, 300)}...`)
+    }
+  </script>
+</body>
+</html>
