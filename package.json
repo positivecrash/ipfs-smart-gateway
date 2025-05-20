@@ -14,8 +14,10 @@
     },
     "scripts": {
         "build": "npx rollup -c",
-        "local:dev": "npx serve ."
+        "copy:umd": "cp dist/ipfs-smart-gateway.umd.js demo/",
+        "dev": "npm run build && npm run copy:umd"
     },
+
     "keywords": [
         "ipfs",
         "gateway",
