@@ -1,6 +1,6 @@
 {
     "name": "ipfs-smart-gateway",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "description": "Smart IPFS gateway selector with latency testing and fallback logic (vanilla JS)",
     "homepage": "https://positivecrash.github.io/ipfs-smart-gateway",
     "main": "dist/ipfs-smart-gateway.umd.js",
@@ -17,7 +17,6 @@
         "copy:umd": "cp dist/ipfs-smart-gateway.umd.js demo/",
         "dev": "npm run build && npm run copy:umd"
     },
-
     "keywords": [
         "ipfs",
         "gateway",
