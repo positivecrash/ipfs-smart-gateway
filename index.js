@@ -74,16 +74,29 @@ function getDefaultGateways() {
 
 // User gateways API
 function setUserGateways(urls) {
+  
   if (!Array.isArray(urls)) return;
-  // normalize & dedupe
+  
+  // 1) Normalize incoming URLs
   const normalized = urls
     .map(normalizeGatewayUrl)
     .filter(Boolean);
-  if (normalized.length > MAX_USER_GATEWAYS) {
+    
+  // 2) Remove existing in default list
+  const defaults = defaultGateways.map(normalizeGatewayUrl);
+  const filtered = normalized.filter(u => !defaults.includes(u));
+
+  // 3) Merge with existing in localStorage (or session memory)
+  const existing = getUserGateways();
+  const combined = Array.from(new Set([...existing, ...filtered]));
+
+  // 4) Check size
+  if (combined.length > MAX_USER_GATEWAYS) {
     throw new Error(`Maximum of ${MAX_USER_GATEWAYS} user gateways exceeded`);
   }
-  // REPLACE entirely
-  userGateways = Array.from(new Set(normalized));
+
+  // 5) Save
+  userGateways = combined;
   if (settings.persistStorage) {
     localStorage.setItem(
       `${STORAGE_PREFIX}user-gateways`,
@@ -91,6 +104,7 @@ function setUserGateways(urls) {
     );
   }
 }
+
 
 function removeUserGateways(urls) {
   if (!Array.isArray(urls)) return;

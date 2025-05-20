@@ -6,6 +6,8 @@ Checks gateway availability and performance by fetching only the first byte of a
 
 Sorts gateways by latency, supports fallback and custom lists, works in any browser or framework.
 
+[Live Demo](https://positivecrash.github.io/ipfs-smart-gateway/)
+
 ---
 
 ## 🚀 Features
