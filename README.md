@@ -226,3 +226,7 @@ If storage is enabled, the following keys are used in `localStorage`:
 ## 📝 License
 
 MIT
+
+---
+
+> **Note:** Some of this documentation and initial scaffolding was generated in collaboration with AI (OpenAI’s ChatGPT).
