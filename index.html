@@ -36,15 +36,19 @@
   
     <section class="container">
       <div class="form-inline section">
-        <input id="cidInput" type="text" placeholder="Find a CID" required />
+        <input 
+          id="cidInput" 
+          type="text" 
+          placeholder="Find a CID" 
+          autocomplete="off"
+          autocorrect="off"
+          spellcheck="false"
+          required />
         <button id="goBtn" @click.prevent="runTest()">Go</button>
       </div>
       <div id="defaulttest">
         <a href="#" @click.prevent="runTestDefault()">Check Default CID</a>
       </div>
-    </section>
-  
-    <section class="container">
       <p id="status"></p>
     </section>
   
@@ -81,6 +85,11 @@
         <button id="addBtn">Add</button>
       </div>
     </section>
+
+    <div class="text-annotation container">
+      This is the demo for vanilla JavaScript npm package <code>ipfs-smart-gateway</code>, any developer can use it in their projects.  
+      <a href="https://github.com/positivecrash/ipfs-smart-gateway">https://github.com/positivecrash/ipfs-smart-gateway</a>
+    </div>
   </div>
 
 

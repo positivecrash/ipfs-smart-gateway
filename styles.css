@@ -5,6 +5,7 @@
     --space: 20px;
     --color-light: #fff;
     --color-lightgray: #f0f3f7;
+    --color-darkgray: #8f99a5;
     --color-darkest: #000;
     --color-dark: #1b1a1a;
     --color-accent: #2f72ff;
@@ -153,12 +154,18 @@
     border-bottom: 1px dotted currentColor;
   }
 
-/* make long CIDs wrap or scroll instead of breaking layout */
-#status {
+    /* make long CIDs wrap or scroll instead of breaking layout */
+    #status {
     white-space: nowrap;
     overflow-x: auto;
     word-break: break-all;
-    padding: var(--space) 0;
+    /* margin: var(--space) 0; */
+  }
+
+  .text-annotation {
+    color: var(--color-darkgray);
+    text-align: center;
+    margin-top: calc(var(--space) * 3);
   }
 
   @media screen and (width < 600px) {
