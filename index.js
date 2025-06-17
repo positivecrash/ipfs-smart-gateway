@@ -194,7 +194,11 @@ async function measureGateway(url, cid, timeout = settings.timeout) {
 async function checkGateways(options = {}) {
   const {
     cid = 'bafybeibwzifw52ttrkqlikfzext5akxu7lz4xiwjgwzmqcpdzmp3n5vnbe',
-    onStart, onSuccess, onFail
+    retry = 0,
+    retryDelay = 1000,
+    onStart,
+    onSuccess,
+    onFail
   } = options;
 
   loadUserGatewaysFromCache();
@@ -203,37 +207,51 @@ async function checkGateways(options = {}) {
   if (onStart) onStart();
 
   const urls = getAllGateways();
-  const results = [];
+  let results = [];
 
-  // parallel checks
-  await Promise.all(
-    urls.map(async (url) => {
-      let status = 'unreachable', time = null;
-      try {
-        const t = await measureGateway(url, cid);
-        if (t !== null) {
-          status = 'available';
-          time = t;
-        }
-      } catch {}
-      const result = { url, status, time };
-      results.push(result);
-      if (status === 'available' && onSuccess) onSuccess(result);
-      if (status !== 'available' && onFail) onFail(result);
-      return result;
-    })
-  );
+  for (let attempt = 0; attempt <= retry; attempt++) {
+    results = [];
 
-  // sort & pick
-  gatewayResults = results;
-  sortedGateways = results
-    .filter(r => r.time !== null)
-    .sort((a, b) => a.time - b.time);
+    await Promise.all(
+      urls.map(async (url) => {
+        let status = 'unreachable', time = null;
+        try {
+          const t = await measureGateway(url, cid);
+          if (t !== null) {
+            status = 'available';
+            time = t;
+          }
+        } catch {}
 
-  if (sortedGateways.length) {
-    setPickedGateway(sortedGateways[0].url);
+        const result = { url, status, time };
+        results.push(result);
+
+        if (status === 'available' && onSuccess) onSuccess(result);
+        if (status !== 'available' && onFail) onFail(result);
+      })
+    );
+
+    const available = results.filter(r => r.time !== null);
+
+    if (available.length > 0 || attempt === retry) {
+      gatewayResults = results;
+      sortedGateways = available.sort((a, b) => a.time - b.time);
+      if (sortedGateways.length) {
+        setPickedGateway(sortedGateways[0].url);
+      }
+      return sortedGateways;
+    }
+
+    // wait before retry
+    await new Promise(resolve => setTimeout(resolve, retryDelay));
   }
+
+  // fallback (shouldn't be reached, but for completeness)
+  gatewayResults = results;
+  sortedGateways = [];
+  return [];
 }
+
 
 // Fetch helpers
 async function fetchAndParse(res, format) {

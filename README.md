@@ -15,6 +15,7 @@ Sorts gateways by latency, supports fallback and custom lists, works in any brow
 - Sorts public and custom IPFS gateways by latency
 - Automatically picks the best/fastest gateway for a given CID
 - Fallback strategy: tries all, picks fastest, randomizes if needed
+- Retry logic for failed scans (NEW in v1.3.0)
 - User can add and remove their own gateways (persisted in localStorage)
 - All gateway lists can be configured at runtime
 - Works in plain HTML, Vue, React, Svelte, or any JS app
@@ -63,16 +64,19 @@ ipfsGateway.removeUserGateways([
   'https://my-gw.example.com/ipfs/'
 ]);
 
-// Run latency checks
-await ipfsGateway.checkGateways({
+// Run latency checks with retry (NEW in v1.3.0)
+const gateways = await ipfsGateway.checkGateways({
   cid: 'Qm...YourCID...',
+  retry: 2,               // retry up to 2 times if no gateways respond
+  retryDelay: 1500,       // wait 1500ms between retries
   onStart: () => console.log('Starting checks...'),
   onSuccess: g => console.log('✅', g.url, g.time, 'ms'),
   onFail: g => console.log('❌', g.url)
 });
 
-// Inspect results
-const sorted = ipfsGateway.getSortedGateways();
+console.log('Sorted gateways:', gateways);
+
+// Fastest gateway
 const picked = ipfsGateway.getPickedGateway();
 console.log('Fastest gateway:', picked);
 
@@ -117,56 +121,62 @@ ipfsGateway.configure({
 
 ### Gateway Management
 
-- **setDefaultGateways(array)**
+- **setDefaultGateways(array)**  
   Overwrite the built-in default gateway list.
 
-- **getDefaultGateways()**
+- **getDefaultGateways()**  
   Retrieve the current default gateways.
 
-- **setUserGateways(array)**
+- **setUserGateways(array)**  
   Persist a list of user-defined gateways (max 15).
 
-- **getUserGateways()**
+- **getUserGateways()**  
   Retrieve the current list of user gateways.
 
-- **removeUserGateways(array)**
+- **removeUserGateways(array)**  
   Remove specified gateways from the user list.
 
-- **getAllGateways()**
+- **getAllGateways()**  
   Returns combined default + user gateways.
 
 ### Gateway Status and Selection
 
-- **checkGateways({ cid, onStart, onSuccess, onFail })**
-  Perform parallel latency and availability checks for the given CID.  
+- **checkGateways({ cid, retry, retryDelay, onStart, onSuccess, onFail })**  
+  Perform parallel latency and availability checks for the given CID.
+
   **Parameters:**
   - `cid` (string): IPFS CID to test.
-  - `onStart` (function): callback before any checks.
-  - `onSuccess` (function): callback for each successful gateway.
-  - `onFail` (function): callback for each failed gateway.
+  - `retry` (number, optional): Number of retry attempts if no gateways respond. Default: `0`.
+  - `retryDelay` (number, optional): Delay in milliseconds between retries. Default: `1000`.
+  - `onStart` (function, optional): Callback before any checks.
+  - `onSuccess` (function, optional): Callback for each successful gateway.
+  - `onFail` (function, optional): Callback for each failed gateway.
 
-- **getSortedGateways()**
+  **Returns:**  
+  An array of available gateways sorted by latency.
+
+- **getSortedGateways()**  
   Returns gateways sorted by measured latency (fastest first).
 
-- **getPickedGateway()**
+- **getPickedGateway()**  
   Returns the fastest gateway URL, or `null` if none.
 
-- **setPickedGateway(url)**
+- **setPickedGateway(url)**  
   Manually set the picked gateway.
 
-- **loadUserGatewaysFromCache()**
+- **loadUserGatewaysFromCache()**  
   Load user gateways from localStorage.
 
-- **loadPickedGatewayFromCache()**
+- **loadPickedGatewayFromCache()**  
   Load the last picked gateway from localStorage.
 
 ### Fetching Content
 
-- **fetchFromPicked(cid, format = 'text')**
+- **fetchFromPicked(cid, format = 'text')**  
   Fetches from the currently picked gateway.  
   `format` may be `'text'`, `'json'`, or `'blob'`.
 
-- **fetchWithFallback(cid, format = 'text')**
+- **fetchWithFallback(cid, format = 'text')**  
   Attempts fetch in order of latency, then random fallback gateways.
 
 ---
@@ -200,6 +210,16 @@ ipfsSmartGateway.removeUserGateways([
 ```js
 const data = await ipfsSmartGateway.fetchFromPicked('QmYourJson', 'json');
 const blob = await ipfsSmartGateway.fetchFromPicked('QmFile', 'blob');
+```
+
+**Retry if no gateways are found immediately**
+```js
+const gateways = await ipfsSmartGateway.checkGateways({
+  cid: 'QmYourCID',
+  retry: 1,
+  retryDelay: 2000
+});
+console.log('Available gateways after retry:', gateways);
 ```
 
 **Listen to gateway check events**
