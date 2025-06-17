@@ -222,7 +222,6 @@ async function checkGateways(options = {}) {
             time = t;
           }
         } catch {}
-
         const result = { url, status, time };
         results.push(result);
 
@@ -236,17 +235,19 @@ async function checkGateways(options = {}) {
     if (available.length > 0 || attempt === retry) {
       gatewayResults = results;
       sortedGateways = available.sort((a, b) => a.time - b.time);
+
       if (sortedGateways.length) {
         setPickedGateway(sortedGateways[0].url);
       }
+
       return sortedGateways;
     }
 
-    // wait before retry
+    // Подождать перед следующей попыткой
     await new Promise(resolve => setTimeout(resolve, retryDelay));
   }
 
-  // fallback (shouldn't be reached, but for completeness)
+  // fallback (если ни одна попытка не сработала, но до конца не дошли)
   gatewayResults = results;
   sortedGateways = [];
   return [];

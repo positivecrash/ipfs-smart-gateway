@@ -3,20 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
   <title>IPFS Smart Gateway Demo</title>
 
-  <!-- Page description -->
+  <!-- SEO & Social -->
   <meta name="description" content="IPFS Smart Gateway Demo — quickly and efficiently select the fastest IPFS gateway and fetch your CID file with minimal latency." />
-
-  <!-- Open Graph -->
-  <meta property="og:type" content="website" />
   <meta property="og:title" content="IPFS Smart Gateway Demo" />
   <meta property="og:description" content="Use IPFS Smart Gateway to instantly choose the fastest IPFS gateway and load content with minimal delay." />
   <meta property="og:url" content="https://positivecrash.github.io/ipfs-smart-gateway/" />
   <meta property="og:image" content="og.png" />
-
-  <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="IPFS Smart Gateway Demo" />
   <meta name="twitter:description" content="Quickly find the fastest gateway for your CID file on IPFS." />
@@ -25,15 +19,15 @@
   <link rel="stylesheet" href="styles.css" />
   <link rel="icon" href="https://ipfs.io/favicon.ico" />
   <script src="https://unpkg.com/vue@3"></script>
-  <script src="https://unpkg.com/ipfs-smart-gateway/dist/ipfs-smart-gateway.umd.js"></script>
-  <!-- <script src="ipfs-smart-gateway.umd.js"></script> -->
+  <script src="ipfs-smart-gateway.umd.js"></script>
+  <!-- <meta property="og:url" content="https://positivecrash.github.io/ipfs-smart-gateway/" /> -->
 </head>
 <body>
   <div id="gatewayApp">
     <section class="container">
       <h1>> Find IPFS File</h1>
     </section>
-  
+
     <section class="container">
       <div class="form-inline section">
         <input 
@@ -44,14 +38,14 @@
           autocorrect="off"
           spellcheck="false"
           required />
-        <button id="goBtn" @click.prevent="runTest()">Go</button>
+        <button id="goBtn">Go</button>
       </div>
       <div id="defaulttest">
-        <a href="#" @click.prevent="runTestDefault()">Check Default CID</a>
+        <a href="#" id="defaulttestLink">Check Default CID</a>
       </div>
       <p id="status"></p>
     </section>
-  
+
     <section class="container">
       <article class="section">
         <h2>List of gateways</h2>
@@ -62,13 +56,16 @@
             :key="g.url"
             :class="{ success: g.status === 'available', fail: g.status !== 'available', default: !g.status }"
           >
-            <div class="gateway-url">{{ g.url }} <button
-              v-if="g.isUser"
-              @click="remove(g.url)"
-              style="color: red; font-weight: bold; border: none; background: none; cursor: pointer"
-            >
-              &minus;
-            </button></div>
+            <div class="gateway-url">
+              {{ g.url }}
+              <button
+                v-if="g.isUser"
+                @click="remove(g.url)"
+                style="color: red; font-weight: bold; border: none; background: none; cursor: pointer"
+              >
+                &minus;
+              </button>
+            </div>
             <div class="gateway-details">
               <span v-if="g.status">
                 {{ g.status }}{{ g.time !== null ? ' — ' + g.time.toFixed(0) + 'ms' : '' }}
@@ -78,7 +75,7 @@
         </div>
       </article>
     </section>
-  
+
     <section class="container">
       <div class="form-inline section">
         <input type="text" id="customGateway" placeholder="Add gateway..." />
@@ -92,7 +89,6 @@
     </div>
   </div>
 
-
   <script>
     const { createApp, ref, onMounted } = Vue;
 
@@ -103,14 +99,6 @@
       persistStorage: true,
       timeout: 3000
     });
-
-    // ipfsSmartGateway.setDefaultGateways([
-    //   'https://aira.mypinata.cloud/ipfs/',
-    //   'https://gateway.pinata.cloud/ipfs/',
-    //   'https://ipfs.url.today/ipfs/',
-    //   'https://ipfs.io/ipfs/',
-    //   'https://gw.crust-gateway.xyz/ipfs/'
-    // ]);
 
     function getGatewayInfo(results = []) {
       const userGateways = ipfsSmartGateway.getUserGateways();
@@ -130,30 +118,24 @@
       });
     }
 
-
-
     createApp({
       setup() {
         const gateways = ref([]);
         const status = ref('');
 
-        // Обновить список без проверки статусов
         function refresh() {
           gateways.value = getGatewayInfo();
         }
 
-        // Обновить список с результатами после проверки
         function updateFrom(results) {
           gateways.value = getGatewayInfo(results);
         }
 
-        // Удалить юзерский гейтвей
         function remove(url) {
           ipfsSmartGateway.removeUserGateways([url]);
           refresh();
         }
 
-        // Добавить юзерский гейтвей
         function addCustomGateway() {
           const input = document.getElementById('customGateway');
           const url = input.value.trim();
@@ -171,7 +153,6 @@
           }
         }
 
-        // Запуск проверки гейтвеев
         function runTest() {
           const raw = document.getElementById('cidInput').value.trim();
           const cid = raw || DEFAULT_CID;
@@ -197,10 +178,14 @@
           });
         }
 
-        // Привязка к кнопкам
         onMounted(() => {
           refresh();
           document.getElementById('addBtn').onclick = addCustomGateway;
+          document.getElementById('goBtn').onclick = runTest;
+          document.getElementById('defaulttestLink').onclick = (e) => {
+            e.preventDefault();
+            runTestDefault();
+          };
         });
 
         return {
