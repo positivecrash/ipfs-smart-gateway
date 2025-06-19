@@ -301,5 +301,6 @@ export {
   setPickedGateway,
   loadPickedGatewayFromCache,
   fetchWithFallback,
-  fetchFromPicked
+  fetchFromPicked,
+  measureGateway
 };

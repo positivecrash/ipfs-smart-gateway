@@ -19,6 +19,7 @@ Sorts gateways by latency, supports fallback and custom lists, works in any brow
 - User can add and remove their own gateways (persisted in localStorage)
 - All gateway lists can be configured at runtime
 - Works in plain HTML, Vue, React, Svelte, or any JS app
+- **Low-level per-gateway check (`measureGateway`)**
 - No external dependencies
 
 ---
@@ -155,6 +156,26 @@ ipfsGateway.configure({
   **Returns:**  
   An array of available gateways sorted by latency.
 
+- **measureGateway(url, cid, timeout?)**  
+  _Test a **single** gateway for the given CID and measure response time._  
+  **Parameters:**  
+  - `url` (string): The gateway URL (with or without protocol, `/ipfs/` is not required).
+  - `cid` (string): IPFS CID to test.
+  - `timeout` (number, optional): Timeout in ms for this check (default: global timeout).
+
+  **Returns:**  
+  Milliseconds to respond (number), or `null` if not available.
+
+  **Example:**
+  ```js
+  const ms = await ipfsGateway.measureGateway('https://ipfs.io', 'QmYourCID');
+  if (ms !== null) {
+    console.log('Gateway is available! Latency:', ms, 'ms');
+  } else {
+    console.log('Gateway is not available for this CID');
+  }
+  ```
+
 - **getSortedGateways()**  
   Returns gateways sorted by measured latency (fastest first).
 
@@ -190,6 +211,16 @@ const sorted = ipfsSmartGateway.getSortedGateways();
 console.log('Sorted by latency:', sorted);
 const picked = ipfsSmartGateway.getPickedGateway();
 const text = await ipfsSmartGateway.fetchFromPicked('QmYourCID');
+```
+
+**Test a single gateway**
+```js
+const ms = await ipfsSmartGateway.measureGateway('https://ipfs.io', 'QmYourCID');
+if (ms !== null) {
+  console.log('Gateway is available! Latency:', ms, 'ms');
+} else {
+  console.log('Gateway is not available for this CID');
+}
 ```
 
 **Add user gateway and test**
