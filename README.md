@@ -12,35 +12,36 @@ Sorts gateways by latency, supports fallback and custom lists, works in any brow
 
 ## 🚀 Features
 
-- Sorts public and custom IPFS gateways by latency
-- Automatically picks the best/fastest gateway for a given CID
-- Fallback strategy: tries all, picks fastest, randomizes if needed
-- Retry logic for failed scans (NEW in v1.3.0)
-- User can add and remove their own gateways (persisted in localStorage)
-- All gateway lists can be configured at runtime
-- Works in plain HTML, Vue, React, Svelte, or any JS app
-- **Low-level per-gateway check (`measureGateway`)**
-- No external dependencies
+- Sorts public and custom IPFS gateways by latency  
+- Automatically picks the best/fastest gateway for a given CID  
+- Fallback strategy: tries all, picks fastest, randomizes if needed  
+- Retry logic for failed scans (NEW in v1.3.0)  
+- User can add and remove their own gateways (persisted in localStorage)  
+- All gateway lists can be configured at runtime  
+- Works in plain HTML, Vue, React, Svelte, or any JS app  
+- **Low-level per-gateway check (`measureGateway`)**  
+- **Gateway URL normalization utility (`normalizeGatewayUrl`)**  
+- No external dependencies  
 
 ---
 
 ## 📦 Installation
 
-```bash
+~~~bash
 npm install ipfs-smart-gateway
-```
+~~~
 
 Or use via CDN:
 
-```html
+~~~html
 <script src="https://unpkg.com/ipfs-smart-gateway/dist/ipfs-smart-gateway.umd.js"></script>
-```
+~~~
 
 ---
 
 ## 🧑‍💻 Usage (ESM)
 
-```js
+~~~js
 import * as ipfsGateway from 'ipfs-smart-gateway';
 
 ipfsGateway.configure({
@@ -68,11 +69,11 @@ ipfsGateway.removeUserGateways([
 // Run latency checks with retry (NEW in v1.3.0)
 const gateways = await ipfsGateway.checkGateways({
   cid: 'Qm...YourCID...',
-  retry: 2,               // retry up to 2 times if no gateways respond
-  retryDelay: 1500,       // wait 1500ms between retries
-  onStart: () => console.log('Starting checks...'),
-  onSuccess: g => console.log('✅', g.url, g.time, 'ms'),
-  onFail: g => console.log('❌', g.url)
+  retry: 2,           // retry up to 2 times if no gateways respond
+  retryDelay: 1500,   // wait 1500 ms between retries
+  onStart:   () => console.log('Starting checks...'),
+  onSuccess: g  => console.log('✅', g.url, g.time, 'ms'),
+  onFail:    g  => console.log('❌', g.url)
 });
 
 console.log('Sorted gateways:', gateways);
@@ -84,13 +85,17 @@ console.log('Fastest gateway:', picked);
 // Fetch content
 const text = await ipfsGateway.fetchFromPicked('Qm...YourCID...');
 const json = await ipfsGateway.fetchFromPicked('Qm...JsonCID', 'json');
-```
+
+// Normalize any user-supplied URL
+const clean = ipfsGateway.normalizeGatewayUrl('ipfs.io/ipfs/');
+console.log('Normalized:', clean); // → https://ipfs.io
+~~~
 
 ---
 
 ## 🌐 Usage in HTML (UMD)
 
-```html
+~~~html
 <script src="https://unpkg.com/ipfs-smart-gateway/dist/ipfs-smart-gateway.umd.js"></script>
 <script>
   const cid = 'QmYourCID';
@@ -102,19 +107,19 @@ const json = await ipfsGateway.fetchFromPicked('Qm...JsonCID', 'json');
     })
     .then(content => console.log('Content:', content));
 </script>
-```
+~~~
 
 ---
 
 ## ⚙️ Configuration
 
-```js
+~~~js
 ipfsGateway.configure({
   stopOnFirstSuccess: true, // Stop on first working gateway (faster, less traffic)
   persistStorage: false,    // Don't save anything in localStorage (session only)
   timeout: 5000             // Timeout in ms per gateway probe (default: 3000)
 });
-```
+~~~
 
 ---
 
@@ -145,36 +150,37 @@ ipfsGateway.configure({
 - **checkGateways({ cid, retry, retryDelay, onStart, onSuccess, onFail })**  
   Perform parallel latency and availability checks for the given CID.
 
-  **Parameters:**
-  - `cid` (string): IPFS CID to test.
-  - `retry` (number, optional): Number of retry attempts if no gateways respond. Default: `0`.
-  - `retryDelay` (number, optional): Delay in milliseconds between retries. Default: `1000`.
-  - `onStart` (function, optional): Callback before any checks.
-  - `onSuccess` (function, optional): Callback for each successful gateway.
-  - `onFail` (function, optional): Callback for each failed gateway.
+  **Parameters**  
+  - `cid` (string): IPFS CID to test.  
+  - `retry` (number, optional): Number of retry attempts if no gateways respond. Default: `0`.  
+  - `retryDelay` (number, optional): Delay in milliseconds between retries. Default: `1000`.  
+  - `onStart` (function, optional): Callback before any checks.  
+  - `onSuccess` (function, optional): Callback for each successful gateway.  
+  - `onFail` (function, optional): Callback for each failed gateway.  
 
-  **Returns:**  
+  **Returns**  
   An array of available gateways sorted by latency.
 
 - **measureGateway(url, cid, timeout?)**  
   _Test a **single** gateway for the given CID and measure response time._  
-  **Parameters:**  
-  - `url` (string): The gateway URL (with or without protocol, `/ipfs/` is not required).
-  - `cid` (string): IPFS CID to test.
-  - `timeout` (number, optional): Timeout in ms for this check (default: global timeout).
 
-  **Returns:**  
+  **Parameters**  
+  - `url` (string): The gateway URL (with or without protocol, `/ipfs/` is not required).  
+  - `cid` (string): IPFS CID to test.  
+  - `timeout` (number, optional): Timeout in ms for this check (default: global timeout).  
+
+  **Returns**  
   Milliseconds to respond (number), or `null` if not available.
 
-  **Example:**
-  ```js
+  **Example**  
+  ~~~js
   const ms = await ipfsGateway.measureGateway('https://ipfs.io', 'QmYourCID');
   if (ms !== null) {
     console.log('Gateway is available! Latency:', ms, 'ms');
   } else {
     console.log('Gateway is not available for this CID');
   }
-  ```
+  ~~~
 
 - **getSortedGateways()**  
   Returns gateways sorted by measured latency (fastest first).
@@ -200,68 +206,84 @@ ipfsGateway.configure({
 - **fetchWithFallback(cid, format = 'text')**  
   Attempts fetch in order of latency, then random fallback gateways.
 
+### Utilities
+
+- **normalizeGatewayUrl(raw)**  
+  Normalize / clean up any gateway URL.  
+  - Adds `https://` if the scheme is missing.  
+  - Removes trailing `/ipfs` or `/ipfs/`.  
+  - Trims extra slashes.  
+  **Returns** the normalized URL string.
+
 ---
 
 ## 📋 Examples
 
 **Basic: Check and pick fastest gateway**
-```js
+
+~~~js
 await ipfsSmartGateway.checkGateways({ cid: 'QmYourCID' });
 const sorted = ipfsSmartGateway.getSortedGateways();
 console.log('Sorted by latency:', sorted);
 const picked = ipfsSmartGateway.getPickedGateway();
 const text = await ipfsSmartGateway.fetchFromPicked('QmYourCID');
-```
+~~~
 
 **Test a single gateway**
-```js
+
+~~~js
 const ms = await ipfsSmartGateway.measureGateway('https://ipfs.io', 'QmYourCID');
 if (ms !== null) {
   console.log('Gateway is available! Latency:', ms, 'ms');
 } else {
   console.log('Gateway is not available for this CID');
 }
-```
+~~~
 
 **Add user gateway and test**
-```js
+
+~~~js
 ipfsSmartGateway.setUserGateways(['https://my-gw.example.com/ipfs/']);
 await ipfsSmartGateway.checkGateways({ cid: 'QmYourCID' });
-```
+~~~
 
-**Remove user gateways:**
-```js
+**Remove user gateways**
+
+~~~js
 ipfsSmartGateway.removeUserGateways([
   'https://my-gw.example-1.com/ipfs/',
   'https://my-gw.example-2.com/ipfs/'
 ]);
-```
+~~~
 
 **Fetch as JSON or Blob**
-```js
+
+~~~js
 const data = await ipfsSmartGateway.fetchFromPicked('QmYourJson', 'json');
 const blob = await ipfsSmartGateway.fetchFromPicked('QmFile', 'blob');
-```
+~~~
 
 **Retry if no gateways are found immediately**
-```js
+
+~~~js
 const gateways = await ipfsSmartGateway.checkGateways({
   cid: 'QmYourCID',
   retry: 1,
   retryDelay: 2000
 });
 console.log('Available gateways after retry:', gateways);
-```
+~~~
 
 **Listen to gateway check events**
-```js
+
+~~~js
 await ipfsSmartGateway.checkGateways({
   cid: 'QmTest',
-  onStart: () => console.log('Started...'),
-  onSuccess: g => console.log('✅', g.url, g.time),
-  onFail: g => console.log('❌', g.url)
+  onStart:   () => console.log('Started...'),
+  onSuccess: g  => console.log('✅', g.url, g.time),
+  onFail:    g  => console.log('❌', g.url)
 });
-```
+~~~
 
 ---
 
@@ -269,8 +291,8 @@ await ipfsSmartGateway.checkGateways({
 
 If storage is enabled, the following keys are used in `localStorage`:
 
-- `ipfs-smart-gateway:user-gateways`
-- `ipfs-smart-gateway:picked`
+- `ipfs-smart-gateway:user-gateways`  
+- `ipfs-smart-gateway:picked`  
 
 ---
 
