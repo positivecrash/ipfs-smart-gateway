@@ -178,11 +178,12 @@ async function measureGateway(url, cid, timeout = settings.timeout) {
   const start = performance.now();
   try {
     const res = await fetch(`${url}/ipfs/${cid}`, {
-      method: 'GET',
-      headers: { 'Range': 'bytes=0-0' },
+      method: 'HEAD',
+      // headers: { 'Range': 'bytes=0-0' },
       signal: controller.signal
     });
     clearTimeout(timer);
+    
     if (!res.ok) return null;
     return performance.now() - start;
   } catch {
